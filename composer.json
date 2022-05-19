@@ -1,0 +1,29 @@
+{
+    "name": "willy68/pg-router",
+    "description": "Adaptation du router de mezzio pour le framework PgFramwork",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "PgRouter\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "William Lety",
+            "email": "william.lety@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "mezzio/mezzio-router": "^3.8",
+        "mezzio/mezzio-fastroute": "^3.5",
+        "guzzlehttp/psr7": "^2.2",
+        "willy68/response-sender": "^1.0"
+    },
+    "require-dev": {
+        "symfony/var-dumper": "^6.0",
+        "phpunit/phpunit": "^9.5",
+        "squizlabs/php_codesniffer": "^3.6"
+    }
+}
