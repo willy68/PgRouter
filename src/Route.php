@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace PgRouter;
 
+use Mezzio\Router\Middleware\Stack\MiddlewareStackInterface;
 use PgRouter\RouteGroup;
 use PgRouter\Middlewares\CallableMiddleware;
 use PgRouter\Middlewares\Stack\MiddlewareAwareStackTrait;
 
-class Route extends \Mezzio\Router\Route implements RouteInterface
+class Route extends \Mezzio\Router\Route implements RouteInterface, MiddlewareStackInterface
 {
     use MiddlewareAwareStackTrait;
 

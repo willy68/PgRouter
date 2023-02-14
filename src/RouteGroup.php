@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PgRouter;
 
+use Mezzio\Router\Middleware\Stack\MiddlewareStackInterface;
 use Mezzio\Router\RouterInterface;
 use PgRouter\Middlewares\Stack\MiddlewareAwareStackTrait;
 
@@ -22,7 +23,7 @@ use function sprintf;
  * ->middleware(Middleware::class);
  * ```
  */
-class RouteGroup
+class RouteGroup implements MiddlewareStackInterface
 {
     use MiddlewareAwareStackTrait;
     use RouteCollectionTrait;
