@@ -9,7 +9,6 @@ use function implode;
 
 use function sprintf;
 use Mezzio\Router\RouterInterface;
-use PgRouter\Middleware\Stack\MiddlewareStackInterface;
 use PgRouter\Middlewares\Stack\MiddlewareAwareStackTrait;
 
 /**
@@ -23,7 +22,7 @@ use PgRouter\Middlewares\Stack\MiddlewareAwareStackTrait;
  * ->middleware(Middleware::class);
  * ```
  */
-class RouteGroup implements MiddlewareStackInterface
+class RouteGroup
 {
     use MiddlewareAwareStackTrait;
     use RouteCollectionTrait;
