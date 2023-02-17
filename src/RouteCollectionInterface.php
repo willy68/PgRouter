@@ -21,7 +21,7 @@ interface RouteCollectionInterface
      * Accepts a combination of a path and callback,
      * and optionally the HTTP methods allowed and name.
      */
-    public function route(string $uri, $callback, ?string $name = null, ?array $methods = null);
+    public function route(string $uri, $callback, ?string $name = null, ?array $methods = null): Route;
 
     /**
      * Add a route that responds to GET HTTP method
