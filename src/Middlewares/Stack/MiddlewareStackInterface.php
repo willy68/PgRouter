@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-namespace Mezzio\Router\Middleware\Stack;
+namespace PgRouter\Middleware\Stack;
 
 use Psr\Http\Server\MiddlewareInterface;
 
