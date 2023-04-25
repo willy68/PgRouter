@@ -11,72 +11,96 @@ namespace PgRouter;
 interface RouteCollectionInterface
 {
     /**
-     * Add a route object to the collection.
-     */
-    public function addRoute(Route $route): Route;
-
-    /**
      * Add a route to the collection.
      *
      * Accepts a combination of a path and callback,
      * and optionally the HTTP methods allowed and name.
+     *
+     * @param string $path
+     * @param callable|string $callback
+     * @param string|null $name
+     * @param array|null $methods
+     * @return Route
      */
-    public function route(string $uri, $callback, ?string $name = null, ?array $methods = null): Route;
+    public function route(string $path, callable|string $callback, ?string $name = null, ?array $methods = null): Route;
 
     /**
      * Add a route that responds to GET HTTP method
      *
-     * @param string|callable $callable
+     * @param string $path
+     * @param callable|string $callable |array|string $callable
+     * @param string|null $name
+     * @return Route
      */
-    public function get(string $uri, $callable, ?string $name = null): Route;
+    public function get(string $path, callable|string $callable, ?string $name = null): Route;
 
     /**
      * Add a route that responds to POST HTTP method
      *
-     * @param string|callable $callable
+     * @param string $path
+     * @param callable|string $callable |array|string $callable
+     * @param string|null $name
+     * @return Route
      */
-    public function post(string $uri, $callable, ?string $name = null): Route;
+    public function post(string $path, callable|string $callable, ?string $name = null): Route;
 
     /**
      * Add a route that responds to PUT HTTP method
      *
-     * @param string|callable $callable
+     * @param string $path
+     * @param callable|string $callable |array|string $callable
+     * @param string|null $name
+     * @return Route
      */
-    public function put(string $uri, $callable, ?string $name = null): Route;
+    public function put(string $path, callable|string $callable, ?string $name = null): Route;
 
     /**
      * Add a route that responds to PATCH HTTP method
      *
-     * @param string|callable $callable
+     * @param string $path
+     * @param callable|string $callable |array|string $callable
+     * @param string|null $name
+     * @return Route
      */
-    public function patch(string $uri, $callable, ?string $name = null): Route;
+    public function patch(string $path, callable|string $callable, ?string $name = null): Route;
 
     /**
      * Add a route that responds to DELETE HTTP method
      *
-     * @param string|callable $callable
+     * @param string $path
+     * @param callable|string $callable
+     * @param string|null $name
+     * @return Route
      */
-    public function delete(string $uri, $callable, ?string $name = null): Route;
+    public function delete(string $path, callable|string $callable, ?string $name = null): Route;
 
     /**
-     * @param string|callable $callback
-     * @param null|string $name The name of the route.
+     * @param string $path
+     * @param callable|string $callback
+     * @param string|null $name The name of the route.
+     * @return Route
      */
-    public function any(string $path, $callback, ?string $name = null): Route;
+    public function any(string $path, callable|string $callback, ?string $name = null): Route;
 
     /**
      * Add a route that responds to HEAD HTTP method
      *
-     * @param string|callable $callable
+     * @param string $path
+     * @param callable|string $callable
+     * @param string|null $name
+     * @return Route
      */
-    public function head(string $uri, $callable, ?string $name = null): Route;
+    public function head(string $path, callable|string $callable, ?string $name = null): Route;
 
     /**
      * Add a route that responds to OPTIONS HTTP method
      *
-     * @param string|callable $callable
+     * @param string $path
+     * @param callable|string $callable
+     * @param string|null $name
+     * @return Route
      */
-    public function options(string $uri, $callable, ?string $name = null): Route;
+    public function options(string $path, callable|string $callable, ?string $name = null): Route;
 
     /**
      * Create multiple routes with same prefix

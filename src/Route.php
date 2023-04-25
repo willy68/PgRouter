@@ -4,41 +4,46 @@ declare(strict_types=1);
 
 namespace PgRouter;
 
-use PgRouter\RouteGroup;
+use Mezzio\Router\Route as MezzioRoute;
 use PgRouter\Middlewares\CallableMiddleware;
 use PgRouter\Middlewares\Stack\MiddlewareAwareStackTrait;
 
-class Route extends \Mezzio\Router\Route implements RouteInterface
+class Route implements RouteInterface
 {
     use MiddlewareAwareStackTrait;
 
+    private string $path;
+    private string $name;
+    private ?array $methods;
     public const HTTP_SCHEME_ANY = null;
+    protected string $host;
+    protected int $port;
+    protected ?array $schemes;
+    protected array $options;
 
-    /** @var ?string */
-    protected $host;
-
-    /** @var ?int */
-    protected $port;
-
-    /** @var null|string[] Schemes allowed with this route */
-    protected $schemes;
-
+    /**
+     * @var string|array|callable
+     */
     protected $callback;
 
-    protected $group;
+    protected RouteGroup $group;
 
     public function __construct(
         string $path,
         $callback,
         ?string $name = null,
-        ?array $method = self::HTTP_METHOD_ANY
+        ?array $methods = MezzioRoute::HTTP_METHOD_ANY
     ) {
+        if ($name === null) {
+            $name = ($methods === null) ? $path : $path . '^' . join(':', $methods);
+        }
+        $this->path = $path;
+        $this->name = $name;
+        $this->methods = $methods;
         $this->callback = $callback;
-        $middleware = new CallableMiddleware($callback);
-        parent::__construct($path, $middleware, $method, $name);
     }
 
-    public function getCallback()
+    public function getCallback(): callable|array|string
     {
         return $this->callback;
     }
@@ -54,6 +59,7 @@ class Route extends \Mezzio\Router\Route implements RouteInterface
     /**
      * Set the parent group
      *
+     * @param RouteGroup $group
      * @return Route
      */
     public function setParentGroup(RouteGroup $group): self
@@ -80,7 +86,7 @@ class Route extends \Mezzio\Router\Route implements RouteInterface
     }
 
     /**
-     * get schemes array available for this route
+     * Get schemes array available for this route
      *
      * @return null|string[] Returns HTTP_SCHEME_ANY or string of allowed schemes.
      */
@@ -92,7 +98,8 @@ class Route extends \Mezzio\Router\Route implements RouteInterface
     /**
      * Indicate whether the specified scheme is allowed by the route.
      *
-     * @param string $method HTTP method to test.
+     * @param string $scheme
+     * @return bool
      */
     public function allowsScheme(string $scheme): bool
     {
@@ -130,5 +137,55 @@ class Route extends \Mezzio\Router\Route implements RouteInterface
     {
         $this->port = $port;
         return $this;
+    }
+
+    public function getPath(): string
+    {
+        return $this->path;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): RouterInterface
+    {
+        $this->name = $name;
+        return $this;
+    }
+
+    public function getAllowedMethods(): ?array
+    {
+        return $this->methods;
+    }
+    /**
+     * Indicate whether the specified method is allowed by the route.
+     *
+     * @param string $method HTTP method to test.
+     */
+    public function allowsMethod(string $method): bool
+    {
+        $method = strtoupper($method);
+        return $this->allowsAnyMethod() || in_array($method, $this->methods ?? [], true);
+    }
+
+    /**
+     * Indicate whether any method is allowed by the route.
+     */
+    public function allowsAnyMethod(): bool
+    {
+        return $this->methods === MezzioRoute::HTTP_METHOD_ANY;
+    }
+
+    public function setOptions(array $options): self
+    {
+        $this->options = $options;
+        return $this;
+    }
+
+    public function getOptions(): array
+    {
+        return $this->options;
     }
 }

@@ -10,6 +10,8 @@ interface RouteInterface
 
     public function getName(): string;
 
+    public function setName(string $name): RouterInterface;
+
     public function getAllowedMethods(): ?array;
 
     public function allowsAnyMethod(): bool;

@@ -12,78 +12,90 @@ trait RouteCollectionTrait
 {
     /**
      * Add a route to the collection
-     */
-    abstract public function addRoute(Route $route): Route;
-
-    /**
-     * Add a route to the collection
      *
-     * @param string|callable $callable
+     * @param string $path
+     * @param callable|string $callback
      * @param null|string $name The name of the route.
-     * @param array|null $method The HTTP methods.
+     * @param array|null $methods The HTTP methods.
+     * @return Route
      */
-    abstract public function route(string $uri, $callable, ?string $name = null, ?array $method = null): Route;
+    abstract public function route(
+        string $path,
+        callable|string $callback,
+        ?string $name = null,
+        ?array $methods = null
+    ): Route;
 
     /**
      * Add a route that responds to GET HTTP method
      *
-     * @param string|callable $callable
+     * @param string $path
+     * @param callable|string $callable |array|string $callable
      * @param null|string $name The name of the route.
+     * @return Route
      */
-    public function get(string $uri, $callable, ?string $name = null): Route
+    public function get(string $path, callable|string $callable, ?string $name = null): Route
     {
-        return $this->route($uri, $callable, $name, ['GET']);
+        return $this->route($path, $callable, $name, ['GET']);
     }
 
     /**
      * Add a route that responds to POST HTTP method
      *
-     * @param string|callable $callable
+     * @param string $path
+     * @param callable|string $callable |array|string $callable
      * @param null|string $name The name of the route.
+     * @return Route
      */
-    public function post(string $uri, $callable, ?string $name = null): Route
+    public function post(string $path, callable|string $callable, ?string $name = null): Route
     {
-        return $this->route($uri, $callable, $name, ['POST']);
+        return $this->route($path, $callable, $name, ['POST']);
     }
 
     /**
      * Add a route that responds to PUT HTTP method
      *
-     * @param string|callable $callable
+     * @param string $path
+     * @param callable|string $callable |array|string $callable
      * @param null|string $name The name of the route.
+     * @return Route
      */
-    public function put(string $uri, $callable, ?string $name = null): Route
+    public function put(string $path, callable|string $callable, ?string $name = null): Route
     {
-        return $this->route($uri, $callable, $name, ['PUT']);
+        return $this->route($path, $callable, $name, ['PUT']);
     }
 
     /**
      * Add a route that responds to PATCH HTTP method
      *
-     * @param string|callable $callable
+     * @param string $path
+     * @param callable|string $callable |array|string $callable
      * @param null|string $name The name of the route.
+     * @return Route
      */
-    public function patch(string $uri, $callable, ?string $name = null): Route
+    public function patch(string $path, callable|string $callable, ?string $name = null): Route
     {
-        return $this->route($uri, $callable, $name, ['PATCH']);
+        return $this->route($path, $callable, $name, ['PATCH']);
     }
 
     /**
      * Add a route that responds to DELETE HTTP method
      *
-     * @param string|callable $callable
+     * @param string $path
+     * @param callable|string $callable |array|string $callable
      * @param null|string $name The name of the route.
+     * @return Route
      */
-    public function delete(string $uri, $callable, ?string $name = null): Route
+    public function delete(string $path, callable|string $callable, ?string $name = null): Route
     {
-        return $this->route($uri, $callable, $name, ['DELETE']);
+        return $this->route($path, $callable, $name, ['DELETE']);
     }
 
     /**
-     * @param string|callable $callback
+     * @param callable|string $callback
      * @param null|string $name The name of the route.
      */
-    public function any(string $path, $callback, ?string $name = null): Route
+    public function any(string $path, callable|string $callback, ?string $name = null): Route
     {
         return $this->route($path, $callback, $name, null);
     }
@@ -94,19 +106,19 @@ trait RouteCollectionTrait
      * @param callable|string $callable
      * @param null|string $name The name of the route.
      */
-    public function head(string $uri, $callable, ?string $name = null): Route
+    public function head(string $path, callable|string $callable, ?string $name = null): Route
     {
-        return $this->route($uri, $callable, $name, ['HEAD']);
+        return $this->route($path, $callable, $name, ['HEAD']);
     }
 
     /**
      * Add a route that responds to OPTIONS HTTP method
      *
-     * @param string|callable $callable
+     * @param callable|string $callable
      * @param null|string $name The name of the route.
      */
-    public function options(string $uri, $callable, ?string $name = null): Route
+    public function options(string $path, callable|string $callable, ?string $name = null): Route
     {
-        return $this->route($uri, $callable, $name, ['OPTIONS']);
+        return $this->route($path, $callable, $name, ['OPTIONS']);
     }
 }

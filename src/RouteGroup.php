@@ -4,11 +4,6 @@ declare(strict_types=1);
 
 namespace PgRouter;
 
-use function ltrim;
-use function implode;
-
-use function sprintf;
-use Mezzio\Router\RouterInterface;
 use PgRouter\Middlewares\Stack\MiddlewareAwareStackTrait;
 
 /**
@@ -27,32 +22,23 @@ class RouteGroup
     use MiddlewareAwareStackTrait;
     use RouteCollectionTrait;
 
-    /**
-     * Route prefix for this group
-     *
-     * @var string
-     */
-    private $prefix;
+    private string $prefix;
 
     /**
-     * Called by router
-     *
      * @var callable
      */
     private $callable;
 
-    /**
-     * Router
-     *
-     * @var RouteCollectionInterface|RouterInterface
-     */
-    private $router;
+    private RouteCollectionInterface $router;
+
     /**
      * constructor
      *
-     * @param RouteCollectionInterface|RouterInterface $router
+     * @param string $prefix
+     * @param callable $callable
+     * @param RouteCollectionInterface $router
      */
-    public function __construct(string $prefix, callable $callable, $router)
+    public function __construct(string $prefix, callable $callable, RouteCollectionInterface $router)
     {
         $this->prefix   = $prefix;
         $this->callable = $callable;
@@ -61,22 +47,10 @@ class RouteGroup
 
     /**
      * Run $callable
-     *
-     * @return void
      */
-    public function __invoke()
+    public function __invoke(): void
     {
         ($this->callable)($this);
-    }
-
-    /**
-     * Add route
-     */
-    public function addRoute(Route $route): Route
-    {
-        $route = $this->router->addRoute($route);
-        $route->setParentGroup($this);
-        return $route;
     }
 
     /**
@@ -84,28 +58,25 @@ class RouteGroup
      *
      * Accepts a combination of a path and callback, and optionally the HTTP methods allowed.
      *
-     * @param string|callable $callback
-     * @param null|array  $methods HTTP method to accept; null indicates any.
+     * @param string $path
+     * @param callable|string $callback
      * @param null|string $name The name of the route.
-     * @throws DuplicateRouteException If specification represents an existing route.
+     * @param null|array $methods HTTP method to accept; null indicates any.
+     * @return Route
      */
-    public function route(string $uri, $callback, ?string $name = null, ?array $methods = null): Route
+    public function route(string $path, callable|string $callback, ?string $name = null, ?array $methods = null): Route
     {
-        $uri = $uri === '/' ? $this->prefix : $this->prefix . sprintf('/%s', ltrim($uri, '/'));
-        $methods = $methods ?? Route::HTTP_METHOD_ANY;
-        if ($name === null) {
-            $name = $methods === null ? $this->prefix . $uri : $this->prefix . $uri . '^' . implode(':', $methods);
-        }
-        $route   = new Route($uri, $callback, $name, $methods);
-        return $this->addRoute($route);
+        $path = $path === '/' ? $this->prefix : $this->prefix . sprintf('/%s', ltrim($path, '/'));
+        $route   = new Route($path, $callback, $name, $methods);
+        return $this->router->route($path, $callback, $name, $methods);
     }
 
     /**
-     * Perfom all crud routes for a given class controller
+     * Perform all crud routes for a given class controller
      *
-     * @param string|callable $callable the class name generally
+     * @param callable|string $callable The class name generally
      */
-    public function crud($callable, string $prefixName): self
+    public function crud(callable|string $callable, string $prefixName): self
     {
         $this->get("/", $callable . '::index', "$prefixName.index");
         $this->get("/new", $callable . '::create', "$prefixName.create");

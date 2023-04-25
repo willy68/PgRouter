@@ -8,10 +8,7 @@ declare(strict_types=1);
 
 namespace PgRouter;
 
-use PgRouter\RouteGroup;
-use Mezzio\Router\RouterInterface;
-use Mezzio\Router\DuplicateRouteDetector;
-use Mezzio\Router\Exception\DuplicateRouteException;
+use PgRouter\Middlewares\CallableMiddleware;
 
 /**
  * Aggregate routes for the router.
@@ -41,39 +38,14 @@ class RouteCollector implements RouteCollectionInterface
 {
     use RouteCollectionTrait;
 
-    /** @var RouterInterface */
-    protected $router;
-
-    /** @var bool */
-    protected $detectDuplicates = true;
-
-    /**
-     * List of all routes registered directly with the application.
-     *
-     * @var Route[]
-     */
-    private $routes = [];
-
-    /** @var null|DuplicateRouteDetector */
-    private $duplicateRouteDetector;
+    protected RouterInterface $router;
+    protected bool $detectDuplicates = true;
+    private array $routes = [];
 
     public function __construct(RouterInterface $router, bool $detectDuplicates = true)
     {
-        $this->router           = $router;
+        $this->router = $router;
         $this->detectDuplicates = $detectDuplicates;
-    }
-
-    /**
-     * Add a route to the collection.
-     *
-     * @throws DuplicateRouteException If specification represents an existing route.
-     */
-    public function addRoute(Route $route): Route
-    {
-        $this->detectDuplicate($route);
-        $this->router->addRoute($route);
-        $this->routes[$route->getName()] = $route;
-        return $route;
     }
 
     /**
@@ -81,16 +53,18 @@ class RouteCollector implements RouteCollectionInterface
      *
      * Accepts a combination of a path and callback, and optionally the HTTP methods allowed.
      *
-     * @param string|callable $callback
-     * @param null|array  $methods HTTP method to accept; null indicates any.
+     * @param string $path
+     * @param callable|string $callback
      * @param null|string $name The name of the route.
-     * @throws DuplicateRouteException If specification represents an existing route.
+     * @param null|array $methods HTTP method to accept; null indicates any.
+     * @return Route
      */
-    public function route(string $uri, $callback, ?string $name = null, ?array $methods = null): Route
+    public function route(string $path, callable|string $callback, ?string $name = null, ?array $methods = null): Route
     {
-        $methods = $methods ?? Route::HTTP_METHOD_ANY;
-        $route   = new Route($uri, $callback, $name, $methods);
-        return $this->addRoute($route);
+        $route = new Route($path, $callback, $name, $methods);
+        $this->router->addRoute($route);
+        $this->routes[$route->getName()] = $route;
+        return $route;
     }
 
     /**
@@ -118,9 +92,12 @@ class RouteCollector implements RouteCollectionInterface
     /**
      * Generate crud Routes
      *
-     * @param string|callable $callable
+     * @param string $prefixPath
+     * @param callable|string $callable
+     * @param string $prefixName
+     * @return RouteGroup
      */
-    public function crud(string $prefixPath, $callable, string $prefixName): RouteGroup
+    public function crud(string $prefixPath, callable|string $callable, string $prefixName): RouteGroup
     {
         return $this->group(
             $prefixPath,
@@ -146,18 +123,6 @@ class RouteCollector implements RouteCollectionInterface
     public function getRouteName(string $name): ?Route
     {
         return $this->routes[$name] ?? null;
-    }
-
-    private function detectDuplicate(Route $route): void
-    {
-        if ($this->detectDuplicates && ! $this->duplicateRouteDetector) {
-            $this->duplicateRouteDetector = new DuplicateRouteDetector();
-        }
-
-        if ($this->duplicateRouteDetector) {
-            $this->duplicateRouteDetector->detectDuplicate($route);
-            return;
-        }
     }
 
     /**
