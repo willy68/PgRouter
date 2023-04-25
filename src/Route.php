@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace PgRouter;
 
 use Mezzio\Router\Route as MezzioRoute;
-use PgRouter\Middlewares\CallableMiddleware;
 use PgRouter\Middlewares\Stack\MiddlewareAwareStackTrait;
 
 class Route implements RouteInterface
@@ -149,7 +148,7 @@ class Route implements RouteInterface
         return $this->name;
     }
 
-    public function setName(string $name): RouterInterface
+    public function setName(string $name): RouteInterface
     {
         $this->name = $name;
         return $this;
