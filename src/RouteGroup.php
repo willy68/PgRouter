@@ -67,7 +67,6 @@ class RouteGroup
     public function route(string $path, callable|string $callback, ?string $name = null, ?array $methods = null): Route
     {
         $path = $path === '/' ? $this->prefix : $this->prefix . sprintf('/%s', ltrim($path, '/'));
-        $route   = new Route($path, $callback, $name, $methods);
         return $this->router->route($path, $callback, $name, $methods);
     }
 
