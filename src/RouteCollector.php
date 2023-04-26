@@ -40,6 +40,7 @@ class RouteCollector implements RouteCollectionInterface
 
     protected RouterInterface $router;
     protected bool $detectDuplicates = true;
+    private ?DuplicateRouteDetector $duplicateRouteDetector = null;
     private array $routes = [];
 
     public function __construct(RouterInterface $router, bool $detectDuplicates = true)
@@ -61,9 +62,11 @@ class RouteCollector implements RouteCollectionInterface
      */
     public function route(string $path, callable|string $callback, ?string $name = null, ?array $methods = null): Route
     {
+        $methods = $methods ?? \Mezzio\Router\Route::HTTP_METHOD_ANY;
         $route = new Route($path, $callback, $name, $methods);
-        $this->router->addRoute($route);
+        $this->detectDuplicate($route);
         $this->routes[$route->getName()] = $route;
+        $this->router->addRoute($route);
         return $route;
     }
 
@@ -123,6 +126,15 @@ class RouteCollector implements RouteCollectionInterface
     public function getRouteName(string $name): ?Route
     {
         return $this->routes[$name] ?? null;
+    }
+
+    private function detectDuplicate(Route $route): void
+    {
+        if ($this->detectDuplicates && ! $this->duplicateRouteDetector) {
+            $this->duplicateRouteDetector = new DuplicateRouteDetector();
+        }
+
+        $this->duplicateRouteDetector?->detectDuplicate($route);
     }
 
     /**
