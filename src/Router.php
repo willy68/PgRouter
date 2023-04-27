@@ -19,10 +19,9 @@ class Router implements RouterInterface
 
     public function __construct(
         ?RouteCollector $router = null,
-        ?callable       $dispatcherFactory = null,
-        ?array          $config = null
-    )
-    {
+        ?callable $dispatcherFactory = null,
+        ?array $config = null
+    ) {
         $this->router = new FastRouteRouter($router, $dispatcherFactory, $config);
     }
 
