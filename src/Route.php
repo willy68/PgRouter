@@ -143,6 +143,18 @@ class Route implements RouteInterface
         return $this->route->getName();
     }
 
+    /**
+     * Set the route name.
+     *
+     * @param non-empty-string $name
+     * @return Route
+     */
+    public function setName(string $name): self
+    {
+        $this->route->setName($name);
+        return $this;
+    }
+
     public function getAllowedMethods(): ?array
     {
         return $this->route->getAllowedMethods();
