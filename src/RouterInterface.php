@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace PgRouter;
 
 use Exception;
-use Mezzio\Router\RouteResult;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use RuntimeException;
 
@@ -68,4 +67,10 @@ interface RouterInterface
      * @throws Exception|RuntimeException If unable to generate the given URI.
      */
     public function generateUri(string $name, array $substitutions = [], array $options = []): string;
+
+    /**
+     * @return \Mezzio\Router\RouterInterface
+     * @internal Only used by RouteCollector
+     */
+    public function getInnerRouter(): \Mezzio\Router\RouterInterface;
 }

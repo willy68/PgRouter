@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace PgRouter;
 
 use Mezzio\Router\Route as MezzioRoute;
+use PgRouter\Middlewares\CallableMiddleware;
 use PgRouter\Middlewares\Stack\MiddlewareAwareStackTrait;
 
 class Route implements RouteInterface
 {
     use MiddlewareAwareStackTrait;
 
-    private string $path;
-    private string $name;
-    private ?array $methods;
+    protected MezzioRoute $route;
     public const HTTP_SCHEME_ANY = null;
     protected string $host;
     protected int $port;
@@ -33,12 +32,7 @@ class Route implements RouteInterface
         ?string $name = null,
         ?array $methods = MezzioRoute::HTTP_METHOD_ANY
     ) {
-        if ($name === null) {
-            $name = ($methods === null) ? $path : $path . '^' . join(':', $methods);
-        }
-        $this->path = $path;
-        $this->name = $name;
-        $this->methods = $methods;
+        $this->route = new MezzioRoute($path, new CallableMiddleware($this->callback), $methods, $name);
         $this->callback = $callback;
     }
 
@@ -115,8 +109,9 @@ class Route implements RouteInterface
     }
 
     /**
-     * set schemes available for this route
+     * Set schemes available for this route
      *
+     * @param array|null $schemes
      * @return Route
      */
     public function setSchemes(?array $schemes = null): self
@@ -140,23 +135,17 @@ class Route implements RouteInterface
 
     public function getPath(): string
     {
-        return $this->path;
+        return $this->route->getPath();
     }
 
     public function getName(): string
     {
-        return $this->name;
-    }
-
-    public function setName(string $name): RouteInterface
-    {
-        $this->name = $name;
-        return $this;
+        return $this->route->getName();
     }
 
     public function getAllowedMethods(): ?array
     {
-        return $this->methods;
+        return $this->route->getAllowedMethods();
     }
     /**
      * Indicate whether the specified method is allowed by the route.
@@ -165,8 +154,7 @@ class Route implements RouteInterface
      */
     public function allowsMethod(string $method): bool
     {
-        $method = strtoupper($method);
-        return $this->allowsAnyMethod() || in_array($method, $this->methods ?? [], true);
+        return $this->route->allowsMethod($method);
     }
 
     /**
@@ -174,17 +162,35 @@ class Route implements RouteInterface
      */
     public function allowsAnyMethod(): bool
     {
-        return $this->methods === MezzioRoute::HTTP_METHOD_ANY;
+        return $this->route->allowsAnyMethod();
     }
 
     public function setOptions(array $options): self
     {
-        $this->options = $options;
+        $this->route->setOptions($options);
         return $this;
     }
 
     public function getOptions(): array
     {
-        return $this->options;
+        return $this->route->getOptions();
+    }
+
+    /**
+     * @return MezzioRoute
+     */
+    public function getRoute(): MezzioRoute
+    {
+        return $this->route;
+    }
+
+    /**
+     * @param MezzioRoute $route
+     * @return Route
+     */
+    public function setRoute(MezzioRoute $route): self
+    {
+        $this->route = $route;
+        return $this;
     }
 }

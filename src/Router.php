@@ -6,8 +6,6 @@ namespace PgRouter;
 
 use FastRoute\RouteCollector;
 use Mezzio\Router\FastRouteRouter;
-use Mezzio\Router\RouteResult;
-use PgRouter\Middlewares\CallableMiddleware;
 use PgRouter\Middlewares\Stack\MiddlewareAwareStackTrait;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -35,21 +33,14 @@ class Router implements RouterInterface
 
     public function addRoute(Route $route): void
     {
-        $mezzioRoute = new \Mezzio\Router\Route(
-            $route->getPath(),
-            new CallableMiddleware(
-                $route->getCallback()
-            ),
-            $route->getAllowedMethods(),
-            $route->getName()
-        );
-        $this->router->addRoute($mezzioRoute);
+        $this->router->addRoute($route->getRoute());
         $this->routes[$route->getName()] = $route;
     }
 
     public function match(Request $request): RouteResult
     {
-        return $this->router->match($request);
+        $result = $this->router->match($request);
+        return new RouteResult($result);
     }
 
     public function generateUri(string $name, array $substitutions = [], array $options = []): string
@@ -95,5 +86,10 @@ class Router implements RouterInterface
                 $route->crud($callable, $prefixName);
             }
         );
+    }
+
+    public function getInnerRouter(): \Mezzio\Router\RouterInterface
+    {
+        return $this->router;
     }
 }
