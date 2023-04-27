@@ -6,6 +6,7 @@ namespace PgRouter;
 
 use FastRoute\RouteCollector;
 use Mezzio\Router\FastRouteRouter;
+use PgRouter\Middlewares\CallableMiddleware;
 use PgRouter\Middlewares\Stack\MiddlewareAwareStackTrait;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -18,9 +19,10 @@ class Router implements RouterInterface
 
     public function __construct(
         ?RouteCollector $router = null,
-        ?callable $dispatcherFactory = null,
-        ?array $config = null
-    ) {
+        ?callable       $dispatcherFactory = null,
+        ?array          $config = null
+    )
+    {
         $this->router = new FastRouteRouter($router, $dispatcherFactory, $config);
     }
 
@@ -40,6 +42,23 @@ class Router implements RouterInterface
     public function match(Request $request): RouteResult
     {
         $result = $this->router->match($request);
+        if ($result->isSuccess()) {
+            $name = $result->getMatchedRouteName();
+            if (array_key_exists($name, $this->routes)) {
+                return new RouteResult($result, $this->routes[$name]);
+            }
+            /** @var CallableMiddleware $middleware */
+            $middleware = $result->getMatchedRoute()->getMiddleware();
+            $route = (new Route(
+                $result->getMatchedRoute()->getPath(),
+                $middleware->getCallable(),
+                $name,
+                $result->getMatchedRoute()->getAllowedMethods()
+            ))
+                ->setRoute($result->getMatchedRoute());
+            $this->routes[$name] = $route;
+            return new RouteResult($result, $route);
+        }
         return new RouteResult($result);
     }
 

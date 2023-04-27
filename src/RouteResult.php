@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace PgRouter;
 
+use Mezzio\Router\RouteResult as MezzioResult;
+
 class RouteResult
 {
-    protected \Mezzio\Router\RouteResult $routeResult;
+    protected MezzioResult $routeResult;
+    protected ?Route $route = null;
 
-    public function __construct(\Mezzio\Router\RouteResult $routeResult)
+    public function __construct(MezzioResult $routeResult, ?Route $route = null)
     {
         $this->routeResult = $routeResult;
+        $this->route = $route;
     }
 
 
@@ -30,7 +34,7 @@ class RouteResult
      */
     public function getMatchedRoute(): bool|Route|null
     {
-        return $this->routeResult->getMatchedRoute();
+        return $this->isFailure() ? false : $this->route;
     }
 
     /**
