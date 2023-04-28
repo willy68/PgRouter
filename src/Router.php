@@ -98,12 +98,15 @@ class Router implements RouterInterface
      */
     public function crud(string $prefixPath, callable|string $callable, string $prefixName): RouteGroup
     {
-        return $this->group(
+        $group = new RouteGroup(
             $prefixPath,
             function (RouteGroup $route) use ($callable, $prefixName) {
                 $route->crud($callable, $prefixName);
-            }
+            },
+            $this
         );
+        $group();
+        return $group;
     }
 
     public function getInnerRouter(): \Mezzio\Router\RouterInterface

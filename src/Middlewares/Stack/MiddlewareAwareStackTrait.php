@@ -8,7 +8,12 @@ declare(strict_types=1);
 
 namespace PgRouter\Middlewares\Stack;
 
+use PgRouter\Route;
+use PgRouter\RouteGroup;
+use PgRouter\Router;
+use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Mezzio\Router\Middleware\RoutePrefixMiddleware;
 
@@ -19,14 +24,15 @@ use function array_unshift;
 trait MiddlewareAwareStackTrait
 {
     /** @var array */
-    protected $middlewares = [];
+    protected array $middlewares = [];
 
     /**
      * Add middleware
      *
      * @param string|MiddlewareInterface $middleware
+     * @return MiddlewareAwareStackTrait|Route|RouteGroup|Router
      */
-    public function middleware($middleware): self
+    public function middleware(string|MiddlewareInterface $middleware): self
     {
         $this->middlewares[] = $middleware;
         return $this;
@@ -49,8 +55,9 @@ trait MiddlewareAwareStackTrait
      * Add middleware in first
      *
      * @param string|MiddlewareInterface $middleware
+     * @return MiddlewareAwareStackTrait|Route|RouteGroup|Router
      */
-    public function prependMiddleware($middleware): self
+    public function prependMiddleware(string|MiddlewareInterface $middleware): self
     {
         array_unshift($this->middlewares, $middleware);
         return $this;
@@ -63,6 +70,10 @@ trait MiddlewareAwareStackTrait
         return $this;
     }
 
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function shiftMiddleware(ContainerInterface $c): ?MiddlewareInterface
     {
         $middleware = array_shift($this->middlewares);
