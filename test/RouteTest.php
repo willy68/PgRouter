@@ -24,9 +24,6 @@ class RouteTest extends TestCase
     use ProphecyTrait;
 
     /** @var callable */
-    private $noopMiddleware;
-
-    /** @var callable */
     private $fakeCallable;
 
     public function testRoutePathIsRetrievable(): void
@@ -45,6 +42,17 @@ class RouteTest extends TestCase
     {
         $route = new Route('/foo', $this->fakeCallable);
         $this->assertInstanceOf(CallableMiddleware::class, $route->getRoute()->getMiddleware());
+    }
+
+    /**
+     * @depends testRouteMiddlewareIsInstanceOfCallableMiddleware
+     */
+    public function testRouteMiddlewareReturnClosure()
+    {
+        $route = new Route('/foo', $this->fakeCallable);
+        /** @var CallableMiddleware $middleware */
+        $middleware = $route->getRoute()->getMiddleware();
+        $this->assertSame($this->fakeCallable, $middleware->getCallable());
     }
 
     public function testRouteInstanceAcceptsAllHttpMethodsByDefault(): void
@@ -175,7 +183,5 @@ class RouteTest extends TestCase
 
         $this->fakeCallable = function () {
         };
-        $this->noopMiddleware = $this->createMock(CallableMiddleware::class);
-        $this->noopMiddleware->method('getCallable')->willReturn($this->fakeCallable);
     }
 }

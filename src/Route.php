@@ -31,7 +31,7 @@ class Route implements RouteInterface
         ?string $name = null,
         ?array $methods = MezzioRoute::HTTP_METHOD_ANY
     ) {
-        $this->route = new MezzioRoute($path, new CallableMiddleware($this->callback), $methods, $name);
+        $this->route = new MezzioRoute($path, new CallableMiddleware($callback), $methods, $name);
         $this->callback = $callback;
     }
 
