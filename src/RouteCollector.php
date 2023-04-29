@@ -70,6 +70,18 @@ class RouteCollector implements RouteCollectionInterface
         return $route;
     }
 
+    private function detectDuplicate(MezzioRoute $route): void
+    {
+        if ($this->detectDuplicates && !$this->duplicateRouteDetector) {
+            $this->duplicateRouteDetector = new DuplicateRouteDetector();
+        }
+
+        if ($this->duplicateRouteDetector) {
+            $this->duplicateRouteDetector->detectDuplicate($route);
+            return;
+        }
+    }
+
     /**
      * Create multiple routes with same prefix
      *
@@ -137,17 +149,5 @@ class RouteCollector implements RouteCollectionInterface
     public function willDetectDuplicates(): bool
     {
         return $this->detectDuplicates;
-    }
-
-    private function detectDuplicate(MezzioRoute $route): void
-    {
-        if ($this->detectDuplicates && ! $this->duplicateRouteDetector) {
-            $this->duplicateRouteDetector = new DuplicateRouteDetector();
-        }
-
-        if ($this->duplicateRouteDetector) {
-            $this->duplicateRouteDetector->detectDuplicate($route);
-            return;
-        }
     }
 }

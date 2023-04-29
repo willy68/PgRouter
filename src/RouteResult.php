@@ -38,6 +38,14 @@ class RouteResult
     }
 
     /**
+     * Is this a routing failure result?
+     */
+    public function isFailure(): bool
+    {
+        return $this->routeResult->isFailure();
+    }
+
+    /**
      * Retrieve the matched route name, if possible.
      *
      * If this result represents a failure, return false; otherwise, return the
@@ -58,14 +66,6 @@ class RouteResult
     public function getMatchedParams(): array
     {
         return $this->routeResult->getMatchedParams();
-    }
-
-    /**
-     * Is this a routing failure result?
-     */
-    public function isFailure(): bool
-    {
-        return $this->routeResult->isFailure();
     }
 
     /**

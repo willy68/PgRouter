@@ -11,6 +11,19 @@ namespace PgRouter;
 trait RouteCollectionTrait
 {
     /**
+     * Add a route that responds to GET HTTP method
+     *
+     * @param string $path
+     * @param callable|string $callable |array|string $callable
+     * @param null|string $name The name of the route.
+     * @return Route
+     */
+    public function get(string $path, callable|string $callable, ?string $name = null): Route
+    {
+        return $this->route($path, $callable, $name, ['GET']);
+    }
+
+    /**
      * Add a route to the collection
      *
      * @param string $path
@@ -25,19 +38,6 @@ trait RouteCollectionTrait
         ?string $name = null,
         ?array $methods = null
     ): Route;
-
-    /**
-     * Add a route that responds to GET HTTP method
-     *
-     * @param string $path
-     * @param callable|string $callable |array|string $callable
-     * @param null|string $name The name of the route.
-     * @return Route
-     */
-    public function get(string $path, callable|string $callable, ?string $name = null): Route
-    {
-        return $this->route($path, $callable, $name, ['GET']);
-    }
 
     /**
      * Add a route that responds to POST HTTP method

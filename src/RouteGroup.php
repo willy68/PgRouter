@@ -40,9 +40,9 @@ class RouteGroup
      */
     public function __construct(string $prefix, callable $callable, RouteCollectionInterface|RouterInterface $router)
     {
-        $this->prefix   = $prefix;
+        $this->prefix = $prefix;
         $this->callable = $callable;
-        $this->router   = $router;
+        $this->router = $router;
     }
 
     /**

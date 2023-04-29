@@ -12,8 +12,8 @@ class Route implements RouteInterface
 {
     use MiddlewareAwareStackTrait;
 
-    protected MezzioRoute $route;
     public const HTTP_SCHEME_ANY = null;
+    protected MezzioRoute $route;
     protected string $host;
     protected int $port;
     protected ?array $schemes;
@@ -57,8 +57,8 @@ class Route implements RouteInterface
      */
     public function setParentGroup(RouteGroup $group): self
     {
-        $prefix      = $group->getPrefix();
-        $path        = $this->getPath();
+        $prefix = $group->getPrefix();
+        $path = $this->getPath();
 
         if (strcmp($prefix, substr($path, 0, strlen($prefix))) === 0) {
             $this->group = $group;
@@ -67,15 +67,31 @@ class Route implements RouteInterface
         return $this;
     }
 
+    public function getPath(): string
+    {
+        return $this->route->getPath();
+    }
 
     public function getHost(): ?string
     {
         return $this->host;
     }
 
+    public function setHost(string $host): self
+    {
+        $this->host = $host;
+        return $this;
+    }
+
     public function getPort(): ?int
     {
         return $this->port;
+    }
+
+    public function setPort(int $port): self
+    {
+        $this->port = $port;
+        return $this;
     }
 
     /**
@@ -86,6 +102,19 @@ class Route implements RouteInterface
     public function getSchemes(): ?array
     {
         return $this->schemes;
+    }
+
+    /**
+     * Set schemes available for this route
+     *
+     * @param array|null $schemes
+     * @return Route
+     */
+    public function setSchemes(?array $schemes = null): self
+    {
+        $schemes = is_array($schemes) ? array_map('strtolower', $schemes) : $schemes;
+        $this->schemes = $schemes;
+        return $this;
     }
 
     /**
@@ -106,36 +135,6 @@ class Route implements RouteInterface
     public function allowsAnyScheme(): bool
     {
         return $this->schemes === self::HTTP_SCHEME_ANY;
-    }
-
-    /**
-     * Set schemes available for this route
-     *
-     * @param array|null $schemes
-     * @return Route
-     */
-    public function setSchemes(?array $schemes = null): self
-    {
-        $schemes       = is_array($schemes) ? array_map('strtolower', $schemes) : $schemes;
-        $this->schemes = $schemes;
-        return $this;
-    }
-
-    public function setHost(string $host): self
-    {
-        $this->host = $host;
-        return $this;
-    }
-
-    public function setPort(int $port): self
-    {
-        $this->port = $port;
-        return $this;
-    }
-
-    public function getPath(): string
-    {
-        return $this->route->getPath();
     }
 
     public function getName(): string
@@ -159,6 +158,7 @@ class Route implements RouteInterface
     {
         return $this->route->getAllowedMethods();
     }
+
     /**
      * Indicate whether the specified method is allowed by the route.
      *
@@ -177,15 +177,15 @@ class Route implements RouteInterface
         return $this->route->allowsAnyMethod();
     }
 
+    public function getOptions(): array
+    {
+        return $this->route->getOptions();
+    }
+
     public function setOptions(array $options): self
     {
         $this->route->setOptions($options);
         return $this;
-    }
-
-    public function getOptions(): array
-    {
-        return $this->route->getOptions();
     }
 
     /**
