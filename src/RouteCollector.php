@@ -8,7 +8,8 @@ declare(strict_types=1);
 
 namespace PgRouter;
 
-use Mezzio\Router\RouteCollector as MezzioCollector;
+use Mezzio\Router\DuplicateRouteDetector;
+use Mezzio\Router\Route as MezzioRoute;
 
 /**
  * Aggregate routes for the router.
@@ -39,7 +40,6 @@ class RouteCollector implements RouteCollectionInterface
     use RouteCollectionTrait;
 
     protected RouterInterface $router;
-    protected MezzioCollector $collector;
     protected bool $detectDuplicates = true;
     private ?DuplicateRouteDetector $duplicateRouteDetector = null;
     private array $routes = [];
@@ -47,7 +47,6 @@ class RouteCollector implements RouteCollectionInterface
     public function __construct(RouterInterface $router, bool $detectDuplicates = true)
     {
         $this->router = $router;
-        $this->collector = new MezzioCollector($router->getInnerRouter(), $detectDuplicates);
         $this->detectDuplicates = $detectDuplicates;
     }
 
@@ -65,8 +64,7 @@ class RouteCollector implements RouteCollectionInterface
     public function route(string $path, callable|string $callback, ?string $name = null, ?array $methods = null): Route
     {
         $route = new Route($path, $callback, $name, $methods);
-        $mezzioRoute = $this->collector->route($path, $route->getRoute()->getMiddleware(), $methods, $name);
-        $route->setRoute($mezzioRoute);
+        $this->detectDuplicate($route->getRoute());
         $this->routes[$route->getName()] = $route;
         $this->router->addRoute($route);
         return $route;
@@ -139,5 +137,17 @@ class RouteCollector implements RouteCollectionInterface
     public function willDetectDuplicates(): bool
     {
         return $this->detectDuplicates;
+    }
+
+    private function detectDuplicate(MezzioRoute $route): void
+    {
+        if ($this->detectDuplicates && ! $this->duplicateRouteDetector) {
+            $this->duplicateRouteDetector = new DuplicateRouteDetector();
+        }
+
+        if ($this->duplicateRouteDetector) {
+            $this->duplicateRouteDetector->detectDuplicate($route);
+            return;
+        }
     }
 }

@@ -5,9 +5,11 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "PgRouter\\": "src/",
-            "MezzioTest\\Router\\": "test"
+            "PgRouter\\": "src"
         }
+    },
+    "autoload-dev": {
+        "MezzioTest\\Router\\": "test"
     },
     "authors": [
         {

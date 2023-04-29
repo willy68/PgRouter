@@ -43,7 +43,7 @@ class Router implements RouterInterface
         $result = $this->router->match($request);
         if ($result->isSuccess()) {
             $name = $result->getMatchedRouteName();
-            if (array_key_exists($name, $this->routes)) {
+            if ($name && array_key_exists($name, $this->routes)) {
                 return new RouteResult($result, $this->routes[$name]);
             }
             /** @var CallableMiddleware $middleware */
