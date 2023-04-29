@@ -15,13 +15,6 @@ use PgRouter\Middlewares\CallableMiddleware;
 use PgRouter\Route;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
-use TypeError;
-
-use function sprintf;
 
 /**
  * @covers \Mezzio\Router\Route
@@ -33,35 +26,44 @@ class RouteTest extends TestCase
     /** @var callable */
     private $noopMiddleware;
 
+    /** @var callable */
+    private $fakeCallable;
+
     public function testRoutePathIsRetrievable(): void
     {
-        $route = new Route('/foo', $this->noopMiddleware);
+        $route = new Route('/foo', $this->fakeCallable);
         $this->assertEquals('/foo', $route->getPath());
     }
 
-    public function testRouteMiddlewareIsRetrievable(): void
+    public function testRouteCallableIsRetrievable(): void
     {
-        $route = new Route('/foo', $this->noopMiddleware);
-        $this->assertSame($this->noopMiddleware, $route->getRoute()->getMiddleware());
+        $route = new Route('/foo', $this->fakeCallable);
+        $this->assertSame($this->fakeCallable, $route->getCallback());
+    }
+
+    public function testRouteMiddlewareIsInstanceOfCallableMiddleware()
+    {
+        $route = new Route('/foo', $this->fakeCallable);
+        $this->assertInstanceOf(CallableMiddleware::class, $route->getRoute()->getMiddleware());
     }
 
     public function testRouteInstanceAcceptsAllHttpMethodsByDefault(): void
     {
-        $route = new Route('/foo', $this->noopMiddleware);
+        $route = new Route('/foo', $this->fakeCallable);
         $this->assertSame(MezzioRoute::HTTP_METHOD_ANY, $route->getAllowedMethods());
     }
 
     public function testRouteAllowsSpecifyingHttpMethods(): void
     {
         $methods = [RequestMethod::METHOD_GET, RequestMethod::METHOD_POST];
-        $route = new Route('/foo', $this->noopMiddleware, 'foo', $methods);
+        $route = new Route('/foo', $this->fakeCallable, 'foo', $methods);
         $this->assertSame($methods, $route->getAllowedMethods());
     }
 
     public function testRouteCanMatchMethod(): void
     {
         $methods = [RequestMethod::METHOD_GET, RequestMethod::METHOD_POST];
-        $route = new Route('/foo', $this->noopMiddleware, 'foo', $methods);
+        $route = new Route('/foo', $this->fakeCallable, 'foo', $methods);
         $this->assertTrue($route->allowsMethod(RequestMethod::METHOD_GET));
         $this->assertTrue($route->allowsMethod(RequestMethod::METHOD_POST));
         $this->assertFalse($route->allowsMethod(RequestMethod::METHOD_PATCH));
@@ -70,45 +72,45 @@ class RouteTest extends TestCase
 
     public function testRouteHeadMethodIsNotAllowedByDefault(): void
     {
-        $route = new Route('/foo', $this->noopMiddleware, 'foo', [RequestMethod::METHOD_GET]);
+        $route = new Route('/foo', $this->fakeCallable, 'foo', [RequestMethod::METHOD_GET]);
         $this->assertFalse($route->allowsMethod(RequestMethod::METHOD_HEAD));
     }
 
     public function testRouteOptionsMethodIsNotAllowedByDefault(): void
     {
-        $route = new Route('/foo', $this->noopMiddleware, 'foo', [RequestMethod::METHOD_GET]);
+        $route = new Route('/foo', $this->fakeCallable, 'foo', [RequestMethod::METHOD_GET]);
         $this->assertFalse($route->allowsMethod(RequestMethod::METHOD_OPTIONS));
     }
 
     public function testRouteAllowsSpecifyingOptions(): void
     {
         $options = ['foo' => 'bar'];
-        $route = new Route('/foo', $this->noopMiddleware);
+        $route = new Route('/foo', $this->fakeCallable);
         $route->setOptions($options);
         $this->assertSame($options, $route->getOptions());
     }
 
     public function testRouteOptionsAreEmptyByDefault(): void
     {
-        $route = new Route('/foo', $this->noopMiddleware);
+        $route = new Route('/foo', $this->fakeCallable);
         $this->assertSame([], $route->getOptions());
     }
 
     public function testRouteNameForRouteAcceptingAnyMethodMatchesPathByDefault(): void
     {
-        $route = new Route('/test', $this->noopMiddleware);
+        $route = new Route('/test', $this->fakeCallable);
         $this->assertSame('/test', $route->getName());
     }
 
     public function testRouteNameWithConstructor(): void
     {
-        $route = new Route('/test', $this->noopMiddleware, 'test', [RequestMethod::METHOD_GET]);
+        $route = new Route('/test', $this->fakeCallable, 'test', [RequestMethod::METHOD_GET]);
         $this->assertSame('test', $route->getName());
     }
 
     public function testRouteNameWithGET(): void
     {
-        $route = new Route('/test', $this->noopMiddleware, 'foo', [RequestMethod::METHOD_GET]);
+        $route = new Route('/test', $this->fakeCallable, null, [RequestMethod::METHOD_GET]);
         $this->assertSame('/test^GET', $route->getName());
     }
 
@@ -116,7 +118,7 @@ class RouteTest extends TestCase
     {
         $route = new Route(
             '/test',
-            $this->noopMiddleware,
+            $this->fakeCallable,
             null,
             [RequestMethod::METHOD_GET, RequestMethod::METHOD_POST]
         );
@@ -128,23 +130,9 @@ class RouteTest extends TestCase
         );
     }
 
-    /**
-     * @requires PHP < 8.0
-     */
-    public function testThrowsExceptionDuringConstructionOnInvalidMiddleware(): void
-    {
-        $this->expectException(TypeError::class);
-        $this->expectExceptionMessage(sprintf(
-            'must implement interface %s',
-            MiddlewareInterface::class
-        ));
-
-        new Route('/foo', 12345);
-    }
-
     public function testRouteNameIsMutable(): void
     {
-        $route = new Route('/foo', $this->noopMiddleware, 'foo', [RequestMethod::METHOD_GET]);
+        $route = new Route('/foo', $this->fakeCallable, 'foo', [RequestMethod::METHOD_GET]);
         $route->setName('bar');
 
         $this->assertSame('bar', $route->getName());
@@ -171,79 +159,23 @@ class RouteTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('One or more HTTP methods were invalid');
 
-        new Route('/test', $this->noopMiddleware, 'test', $invalidHttpMethods);
-    }
-
-    public function testAllowsHttpInteropMiddleware(): void
-    {
-        $middleware = $this->createMock(CallableMiddleware::class);
-        $route = new Route('/test', $middleware, 'test', MezzioRoute::HTTP_METHOD_ANY);
-        $this->assertSame($middleware, $route->getRoute()->getMiddleware());
-    }
-
-    /**
-     * @return array
-     */
-    public function invalidMiddleware(): array
-    {
-        // Strings are allowed, because they could be service names.
-        return [
-            'null' => [null],
-            'true' => [true],
-            'false' => [false],
-            'zero' => [0],
-            'int' => [1],
-            'non-callable-object' => [(object)['handler' => 'foo']],
-            'callback' => [
-                function () {
-                },
-            ],
-            'array' => [['Class', 'method']],
-            'string' => ['Application\Middleware\HelloWorld'],
-        ];
-    }
-
-    /**
-     * @requires PHP < 8.0
-     * @dataProvider invalidMiddleware
-     * @param mixed $middleware
-     */
-    public function testConstructorRaisesExceptionForInvalidMiddleware(mixed $middleware): void
-    {
-        $this->expectException(TypeError::class);
-        $this->expectExceptionMessage(sprintf(
-            'must implement interface %s',
-            MiddlewareInterface::class
-        ));
-
-        new Route('/test', $middleware);
-    }
-
-    public function testRouteIsMiddlewareAndProxiesToComposedMiddleware(): void
-    {
-        $request = $this->prophesize(ServerRequestInterface::class)->reveal();
-        $handler = $this->prophesize(RequestHandlerInterface::class)->reveal();
-        $response = $this->prophesize(ResponseInterface::class)->reveal();
-        $middleware = $this->prophesize(MiddlewareInterface::class);
-        $middleware->process($request, $handler)->willReturn($response);
-
-        $route = new Route('/foo', $middleware->reveal());
-        $this->assertSame($response, $route->getRoute()->getMiddleware()->process($request, $handler));
+        new Route('/test', $this->fakeCallable, 'test', $invalidHttpMethods);
     }
 
     public function testConstructorShouldRaiseExceptionIfMethodsArgumentIsAnEmptyArray(): void
     {
-        $middleware = $this->prophesize(MiddlewareInterface::class)->reveal();
-
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('empty');
-        new Route('/foo', $middleware, 'foo', []);
+        new Route('/foo', $this->fakeCallable, 'foo', []);
     }
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->noopMiddleware = $this->createMock(MiddlewareInterface::class);
+        $this->fakeCallable = function () {
+        };
+        $this->noopMiddleware = $this->createMock(CallableMiddleware::class);
+        $this->noopMiddleware->method('getCallable')->willReturn($this->fakeCallable);
     }
 }

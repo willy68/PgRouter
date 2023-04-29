@@ -17,7 +17,6 @@ class Route implements RouteInterface
     protected string $host;
     protected int $port;
     protected ?array $schemes;
-    protected array $options;
 
     /**
      * @var string|array|callable
